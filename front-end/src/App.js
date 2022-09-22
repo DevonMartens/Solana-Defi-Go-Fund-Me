@@ -10,6 +10,12 @@ const CheckConnection = async() => {
     if (solana) {
     if (solana.isPhantom) {
       console.log("The phantom is present");
+      //need to check if we have creditials to access user who is on the websites creditials 
+      //check if user = logged in this line tells phantom wallet we can access
+      //only if trusted aviods second pop up
+      const response = await solana.connect({onlyIfTrusted: true});
+      console.log("logged in with wallet public key");
+      response.publicKey.toString()
     }
    } else {
       alert("download wallet here: https://phantom.app/download");
@@ -18,6 +24,14 @@ const CheckConnection = async() => {
     console.error(error);
   }
   };
+  //function to connect wallet with button
+  const connectWallet = async() => {
+  };
+  //component to connect wallet if wallet is not present
+  const ConnectedWallet = () => (
+    //render button
+    <button onClick={connectWallet}>Connect to this dApp</button>
+  );
   //call to check the if wallet is connected function
   //use effect hook gets called on componenet mounts
   //second argument i.e. this array is empty.
@@ -33,6 +47,9 @@ const CheckConnection = async() => {
     return() => window.removeEventListener("load", onLoad);
     //arg 2 an array - "this array"
   }, []);
+
+  //render container
+  return <div className='App'>{ConnectedWallet()}</div>
 };
 
 export default App;
