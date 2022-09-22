@@ -83,7 +83,6 @@ pub mod defi_go_fund_me {
             amount
         );
        invoke(
-
             &ix,
             &[ 
             ctx.accounts.user.to_account_info(),
@@ -94,6 +93,7 @@ pub mod defi_go_fund_me {
         (&mut ctx.accounts.campaign).amount_raised += amount;
         Ok(())
     }
+    
 }
 
 /**  
@@ -159,7 +159,7 @@ pub struct Campaign {
     pub admin: Pubkey,
     pub name: String,
     pub description: String,
-    pub amount_raised: i64
+    pub amount_raised: u64
 }
 
 
