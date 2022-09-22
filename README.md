@@ -38,8 +38,7 @@ The frontend is in JavaScript with the React library and Node is the backend. Th
 
 pubkey: 9wtuC5xKhf9QnCuwWrAfsE71t5eDKr5EgHaqmGjdqXQY
 ==========================================================================
-Save this seed phrase and your BIP39 passphrase to recover your new keypair:
-safe oblige coin age million oyster cabin regular rookie hire draft reveal
+
 
 2. Copy the public key and airdrop SOL into wallet. 
 
@@ -114,3 +113,6 @@ AND in lib.rs
 
   Deploy success
   ```
+  
+Devnet link:
+  https://explorer.solana.com/address/2rRtqZMmkqtHgTuXjvPRigmhjr9jfNnuWTMNMJ7NeyTN?cluster=devnet
