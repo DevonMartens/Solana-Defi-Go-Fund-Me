@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-defi_go_fund_me = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+defi_go_fund_me = "4ihLbA5Q6je6Mf3QGAMDKMPsixZpmZHVjQupda2w9QZ5"
 
 [registry]
 url = "https://api.apr.dev"

@@ -26,3 +26,91 @@ So who gives permission? **This is where program derived accounts come into play
 ```
 The frontend is in JavaScript with the React library and Node is the backend. The contract is obviously in Rust.
 ```
+
+# Contract Deploy Instruction
+
+1. Generate new wallet to deploy 
+
+  ``` 
+  solana-keygen new -o id.json
+  ```
+* No passphrase needed `hit enter`.
+
+pubkey: 9wtuC5xKhf9QnCuwWrAfsE71t5eDKr5EgHaqmGjdqXQY
+==========================================================================
+Save this seed phrase and your BIP39 passphrase to recover your new keypair:
+safe oblige coin age million oyster cabin regular rookie hire draft reveal
+
+2. Copy the public key and airdrop SOL into wallet. 
+
+  ```
+  solana airdrop 4 9wtuC5xKhf9QnCuwWrAfsE71t5eDKr5EgHaqmGjdqXQY --url devnet
+  ```
+
+  ```
+  solana airdrop 4 publicKey --url devnet
+  ```
+
+3. Run `anchor build` which will generate a `program id`.
+
+  ```
+  anchor build
+  ```
+
+4. To get the `program id` you generated run:
+
+  ```
+  solana address -k ./target/deploy/Defi-Go-Fund-Me-keypair.json
+  ```
+
+  ```
+  solana address -k ./target/deploy/YOUR_PROJECT_NAME-keypair.json
+  ```
+If you get this error:
+
+  ```
+  Error: No default signer found, run "solana-keygen new -o ./target/deploy/Defi-Go-Fund-Me-keypair.json" to create a new one
+  ```
+
+  Run:
+
+  ```
+  solana-keygen new -o ./target/deploy/Defi-Go-Fund-Me-keypair.json
+  ```
+Then retry:
+
+  ```
+  solana address -k ./target/deploy/Defi-Go-Fund-Me-keypair.json   
+  ```
+
+5. Copy the program ID and past in the anchor.tml file. For example:
+
+  ```
+  defi_go_fund_me = "4ihLbA5Q6je6Mf3QGAMDKMPsixZpmZHVjQupda2w9QZ5"
+
+  OR
+
+  YOUR_APP_NAME = "programID"
+  ```
+AND in lib.rs
+
+  ```
+  declare_id!("4ihLbA5Q6je6Mf3QGAMDKMPsixZpmZHVjQupda2w9QZ5");
+
+  OR
+
+  declare_id!("programID"0
+  ```
+6. Run `anchor build` in root in the terminal.  
+
+7. Then run `anchor deploy`. Feedback will look like:
+
+  ```
+  Deploying workspace: https://api.devnet.solana.com
+  Upgrade authority: id.json
+  Deploying program "Defi-Go-Fund-Me"...
+  Program path: /Users/devonmartens/contracts/solana/Defi-Go-Fund-Me/target/deploy/defi_go_fund_me.so...
+  Program Id: 2rRtqZMmkqtHgTuXjvPRigmhjr9jfNnuWTMNMJ7NeyTN
+
+  Deploy success
+  ```

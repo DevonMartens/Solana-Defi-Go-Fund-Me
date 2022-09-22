@@ -3,7 +3,7 @@ use anchor_lang::solana_program::entrypoint::ProgramResult;
 use anchor_lang::solana_program::system_instruction::transfer;
 use anchor_lang::solana_program::program::invoke;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("4ihLbA5Q6je6Mf3QGAMDKMPsixZpmZHVjQupda2w9QZ5");
 
 #[program]
 
