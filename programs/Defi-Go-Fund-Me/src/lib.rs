@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::entrypoint::ProgramResult;
-
+use anchor_lang::solana_program::system_instruction::transfer;
+use anchor_lang::solana_program::program::invoke;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -8,6 +9,11 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 pub mod defi_go_fund_me {
     use super::*;
+/**  
+================================================
+|              Create Campaign                | 
+================================================
+**/
     /*
     function to create campagign
     @Dev: only owner of campagin can withdraw
@@ -29,12 +35,18 @@ pub mod defi_go_fund_me {
         Ok(())
 
     }
+/**  
+================================================
+|           Fund Distrubution                  | 
+================================================
+**/    
     /*
     function to withdraw funds
     @Dev: only owner of campagin can withdraw
     @Notice: Returns a result.
     @Params: Context for Withdraw and the amount to withdraw.
     */
+
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64)-> ProgramResult {
         //retrieve two accounts
         let campaign = &mut ctx.accounts.campaign;
@@ -59,10 +71,37 @@ pub mod defi_go_fund_me {
     **user.to_account_info().try_borrow_mut_lamports()? += amount;
     Ok(())
 }
+    /*
+    @Notice: Funds go from a users wallet not an account
+    */
+    pub fn donate(ctx: Context<Donate>, amount: u64)-> ProgramResult {
+        let ix = transfer (
+            //specify from address
+            &ctx.accounts.user.key(),
+            //to campaign
+            &ctx.accounts.campaign.key(),
+            amount
+        );
+       invoke(
+
+            &ix,
+            &[ 
+            ctx.accounts.user.to_account_info(),
+            //to campaign
+            ctx.accounts.campaign.to_account_info()
+            ]        
+        );
+        (&mut ctx.accounts.campaign).amount_raised += amount;
+        Ok(())
+    }
 }
-/*
-Macro explains that this is a context
-*/
+
+/**  
+================================================
+|                   Accounts                   | 
+================================================
+**/
+
 #[derive(Accounts)]
 pub struct Create<'info>{
     /*
@@ -95,6 +134,16 @@ pub struct Withdraw<'info>{
 
 
 }
+#[derive(Accounts)]
+//add system program to authorize users to send money out of their wallet
+pub struct Donate<'info>{
+    #[account(mut)]
+    pub campaign: Account<'info, Campaign>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>
+
+}
 //act macro
 #[account]
 /*
@@ -105,6 +154,7 @@ pub struct Withdraw<'info>{
 * 3. Description - the description of our account.
 * 4. And finally, the amount donated.
 */
+
 pub struct Campaign {
     pub admin: Pubkey,
     pub name: String,
