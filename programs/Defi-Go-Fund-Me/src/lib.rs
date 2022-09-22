@@ -1,8 +1,10 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::entrypoint::ProgramResult;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
+
 pub mod defi_go_fund_me {
     use std::error::Error;
 
@@ -14,7 +16,7 @@ pub mod defi_go_fund_me {
     @Notice: The context of the function in Solana is the list of accounts that that function needs to retrieve data from.
     @Params: 1. Name - string allows users to state campagin name 2. Desc - desc of campagn
     @Dev: specify return value as a result (returns fn results and errors) */
-    pub fn create(ctx: Context<Create>, name: String, description: String) -> Result<()> {
+    pub fn create(ctx: Context<Create>, name: String, description: String) -> ProgramResult {
         //create context list of accounts fn needs
         //the first is the campaign account
         let campaign = &mut ctx.accounts.campaign;
@@ -28,7 +30,36 @@ pub mod defi_go_fund_me {
         Ok(())
 
     }
-
+    /*
+    function to withdraw funds
+    @Dev: only owner of campagin can withdraw
+    @Notice: Returns a result.
+    @Params: Context for Withdraw and the amount to withdraw.
+    */
+    pub fn withdraw(ctx: Context<Withdraw>, amount: u64)-> ProgramResult {
+        //retrieve two accounts
+        let campaign = &mut ctx.accounts.campaign;
+        let user = &mut ctx.accounts.user;
+        if campaign.admin != *user.key {
+            return Err(ProgramError::IncorrectProgramId);
+        }
+        /* check if acct has enough funds
+        * checks if lamports in campaign are less than user wants to borrow if that's the case, then there isn't enough funds to withdraw.
+        * also have to calculate the rent that the campaign requires.
+        * When you initialize any account in Solana, the account needs to store some sol.
+        * The SOL reserved for rent will eventually be collected and either needs to be replenished..
+         or the account won't be usable anymore.
+         * Unless you give it 2 years worth of SOL then if lasts forever
+        */
+        //calc rent balance so it stays in acct - rent based on data
+        let rentBalance = Rent::get()?.minimum_balance(campaign.to_account_info().data_len());
+        if **campaign.to_account_info().lamports.borrow() - rentBalance < amount {
+            return Err(ProgramError::InsufficientFunds);
+    }
+    **campaign.to_account_info().try_borrow_mut_lamports()? -= amount;
+    **user.to_account_info().try_borrow_mut_lamports()? += amount;
+    Ok(())
+}
 }
 /*
 Macro explains that this is a context
@@ -55,6 +86,15 @@ pub struct Create<'info>{
     for withdraw acct send $ from self to admin
     needs program permission - needs to be program derived
     */
+}
+#[derive(Accounts)]
+pub struct Withdraw<'info>{
+    #[account(mut)]
+    pub campaign: Account<'info, Campaign>,
+    #[account(mut)]
+    pub user: Signer<'info>
+
+
 }
 //act macro
 #[account]
