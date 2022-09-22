@@ -1,8 +1,11 @@
 import './App.css';
-import {useEffect} from 'react';
+import React, { useEffect, useState } from 'react';
 
-const App =() => {
+
+const App = () => {
+const [walletAdd, setWalletAddress ] = useState(null);
 const CheckConnection = async() => {
+  //stateful variable to hold wallet as a constant
   try {
     //solana object automatically injected via phantom
     const { solana } = window;
@@ -14,8 +17,11 @@ const CheckConnection = async() => {
       //check if user = logged in this line tells phantom wallet we can access
       //only if trusted aviods second pop up
       const response = await solana.connect({onlyIfTrusted: true});
-      console.log("logged in with wallet public key");
-      response.publicKey.toString()
+      console.log(
+        "logged in with wallet public key",
+        response.publicKey.toString()
+      );
+      setWalletAddress(response.publicKey.toString());
     }
    } else {
       alert("download wallet here: https://phantom.app/download");
@@ -48,8 +54,12 @@ const CheckConnection = async() => {
     //arg 2 an array - "this array"
   }, []);
 
-  //render container
-  return <div className='App'>{ConnectedWallet()}</div>
+  //render container if not walletAddress not connected
+  return (
+  <div className='App'>
+    {!walletAdd && ConnectedWallet()}
+    </div>
+  );
 };
 
 export default App;
