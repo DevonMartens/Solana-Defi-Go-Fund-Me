@@ -32,6 +32,17 @@ const CheckConnection = async() => {
   };
   //function to connect wallet with button
   const connectWallet = async() => {
+    const { solana } = window;
+    //check if object is there
+    if (solana) {
+      const response = solana.connect()
+      console.log(
+        "connected with public key",
+        response.publicKey.toString()
+      )
+      //set address to public key
+      setWalletAddress(response.publicKey)
+    }
   };
   //component to connect wallet if wallet is not present
   const ConnectedWallet = () => (
