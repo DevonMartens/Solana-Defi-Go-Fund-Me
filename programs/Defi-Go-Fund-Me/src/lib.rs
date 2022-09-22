@@ -1,13 +1,12 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::entrypoint::ProgramResult;
 
+
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
 
 pub mod defi_go_fund_me {
-    use std::error::Error;
-
     use super::*;
     /*
     function to create campagign
@@ -52,8 +51,8 @@ pub mod defi_go_fund_me {
          * Unless you give it 2 years worth of SOL then if lasts forever
         */
         //calc rent balance so it stays in acct - rent based on data
-        let rentBalance = Rent::get()?.minimum_balance(campaign.to_account_info().data_len());
-        if **campaign.to_account_info().lamports.borrow() - rentBalance < amount {
+        let rent_balance = Rent::get()?.minimum_balance(campaign.to_account_info().data_len());
+        if **campaign.to_account_info().lamports.borrow() - rent_balance < amount {
             return Err(ProgramError::InsufficientFunds);
     }
     **campaign.to_account_info().try_borrow_mut_lamports()? -= amount;
@@ -72,7 +71,7 @@ pub struct Create<'info>{
     @Notice: Solona will use a hash function to determine the address for a new program derived account.
     @Notice: The `bump` ensures the hash isn't matching another acct by adding an 8bit bump until we find an unsed address
     */
-    #[account(init, payer=user, space=9000, seeds=["b Campaign_demo".as_ref(), user.key().as_ref(), bump])]
+    #[account(init, payer=user, space=9000, seeds=[b"Campaign_demo".as_ref(), user.key().as_ref()], bump)]
     pub campaign: Account<'info, Campaign>,
     //speficies this as mutable so it can be changed
     #[account(mut)]
