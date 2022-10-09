@@ -8,7 +8,7 @@ window.Buffer = Buffer;
 //variables to make connections to the contract
 
 //give app program id
-const programId = new PublicKey(idl.metadata.address);
+const programID = new PublicKey(idl.metadata.address);
 //specify network
 const network = clusterApiUrl("devnet");
 //how to identify a complete txn
@@ -22,6 +22,7 @@ const { SystemProgram } = web3;
 //app code
 const App = () => {
 const [walletAdd, setWalletAddress ] = useState(null);
+const [campaigns, setCampaigns ] = useState([]);
 //function to get provider - connect to solana
 const getProvider = () => {
   const connection = new Connection(network, opts.preflightCommitment);
@@ -68,37 +69,72 @@ const CheckConnection = async() => {
       setWalletAddress(response.publicKey)
     }
   };
+//function to see campaigns
+const getCampaigns = async () => {
+  const connection = new Connection(network, opts.preflightCommitment);
+  const provider = getProvider();
+  const program = new Program(idl, programID, provider);
+  //wrapped in promise b/c each program derived act wrapped in a promise.
+  //.map to map into a format that can be used 
+  Promise.all(
+    (await connection.getProgramAccounts(programID)).map(async (campaign) => ({
+    //for each campaign object is mapped
+    ...(await program.account.campaign.fetch(campaign.publicKey)),
+    pubkey: campaign.publicKey,
+    })
+    )
+  ).then(campaigns => setCampaigns(campaigns));
+};
 //function to create campaign
 const createCampaign = async () => {
-  try{
-    //get provider + program
-    const provider = getProvider()
-    const program = new Program(idl, programId, provider)
-    //get address created with capaign acct
-    const [campaign] = await PublicKey.findProgramAddress([
-      utils.bytes.utf8.encode("Campaign_demo"),
-      provider.wallet.publicKey.toBuffer(),
-    ],
-      programId
+  try {
+    const provider = getProvider();
+    const program = new Program(idl, programID, provider);
+    const [campaign] = await PublicKey.findProgramAddress(
+      [
+        utils.bytes.utf8.encode("CAMPAIGN_DEMO"),
+        provider.wallet.publicKey.toBuffer(),
+      ],
+      program.programId
     );
-    //address calc now time to create account
-    //need to make txt box for name and descr
-    await program.rpc.create("campaign name", "campaign descr", {
-      accounts: {
+    await program.rpc.create('campaign name', 'campaign description', {
+      accounts:{
         campaign,
         user: provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
-    },
-  });
-  console.log("new camapign = success at address:", campaign.toString)
-  } catch(error){
-    console.log("Error: Campaign create failed:", error);
+      },
+    });
+    console.log("Created a new campaign /w address", campaign.toString());
+  } catch(err){
+    console.error('Error creating campaign account: ', err);
   }
 }
 
-
-
-
+//here is the function to donate to a campaign
+const donate = async (publicKey) =>  {
+  try{
+    const provider = getProvider(idl, programID, provider);
+    const program = new Program();
+    //this will call the donate function in the contract. 
+    //the first argument you pass in, is the amount you want to donate.
+    //new BN is wrapping this in an anchor big number
+    //hard coded 0.2 sol value exists need a drop down in application
+    //converted to lamports with web3...
+    //the context passed in(publicKey aka campaign passed into this function
+    // the users wallet)
+    await program.rpc.donate(new BN(0.2 * web3.LAMPORTS_PER_SOL), {
+      accounts: {
+        campaign: publicKey,
+        user: provider.wallet.publicKey,
+        SystemProgram: SystemProgram.programId,
+      },
+    });
+    console.log("Donated some SOL to:", publicKey.toString());
+    getCampaigns();
+  }catch(error){
+    console.log("error found during:", error);
+  }
+};
 
   //component to connect wallet if wallet is not present
   const ConnectedWallet = () => (
@@ -108,7 +144,22 @@ const createCampaign = async () => {
   //component to create camapgin if wallet is not present
   const createButton = () => (
       //render button
-      <button onClick={createCampaign}>Create Campaign</button>
+     <>
+     <button onClick={createCampaign}>Create Campaign</button>
+     <button onClick={getCampaigns}>Get Campaigns</button>
+     <br/>
+     {campaigns.map(campaign => (<>
+     <p>Campaign ID: {campaign.publicKey.toString()}</p>
+     <p>Campaign Balance: {(campaign.amount_raised / web3.LAMPORTS_PER_SOL).toString()}</p>
+     <p>Campaign Balance: {campaign.publicKey.toString()}</p>
+     <p>{campaign.name}</p>
+     <p>{campaign.description}</p>
+     <button onClick={() => donate(campaign.pubkey)}>
+       Click to donate
+     </button>
+     <br/>
+     </>))}
+     </>
     );
   //call to check the if wallet is connected function
   //use effect hook gets called on componenet mounts
