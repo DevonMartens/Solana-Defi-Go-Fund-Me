@@ -135,6 +135,32 @@ const donate = async (publicKey) =>  {
     console.log("error found during:", error);
   }
 };
+//withdraw function
+const withdraw = async (publicKey) =>  {
+  try{
+    const provider = getProvider(idl, programID, provider);
+    const program = new Program();
+    //this will call the donate function in the contract. 
+    //the first argument you pass in, is the amount you want to withdraw.
+    //new BN is wrapping this in an anchor big number
+    //hard coded 0.2 sol value exists need a drop down in application
+    //converted to lamports with web3...
+    //the context passed in(publicKey aka campaign passed into this function
+    // the users wallet)
+    await program.rpc.withdraw(new BN(0.2 * web3.LAMPORTS_PER_SOL), {
+      accounts: {
+        campaign: publicKey,
+        user: provider.wallet.publicKey,
+        //no system program because the accts are managed
+        //solana program takes care of the authorization
+      },
+    });
+    console.log("Donated some SOL to:", publicKey.toString());
+    getCampaigns();
+  }catch(error){
+    console.log("error withdraw during", error);
+  }
+};
 
   //component to connect wallet if wallet is not present
   const ConnectedWallet = () => (
@@ -156,6 +182,9 @@ const donate = async (publicKey) =>  {
      <p>{campaign.description}</p>
      <button onClick={() => donate(campaign.pubkey)}>
        Click to donate
+     </button>
+     <button onClick={() => withdraw(campaign.pubkey)}>
+       Click to withdraw
      </button>
      <br/>
      </>))}
